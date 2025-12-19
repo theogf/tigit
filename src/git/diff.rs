@@ -1,6 +1,7 @@
 use crate::diff::types::{DiffLine, DiffSet, FileDiff, FileStatus, Hunk, LineOrigin};
 use crate::error::{GitDiffError, Result};
 use git2::{Commit, Delta, Diff, DiffOptions, Repository};
+use std::cell::RefCell;
 
 /// Get diff between main branch and HEAD
 pub fn get_diff<'repo>(
@@ -27,13 +28,13 @@ pub fn parse_diff(
     main_branch_name: String,
 ) -> Result<DiffSet> {
     let mut diff_set = DiffSet::new(head_commit_id, main_commit_id, main_branch_name);
-    let mut current_file: Option<FileDiff> = None;
-    let mut hunk_counter = 0;
+    let current_file: RefCell<Option<FileDiff>> = RefCell::new(None);
+    let hunk_counter: RefCell<usize> = RefCell::new(0);
 
     diff.foreach(
         &mut |delta, _progress| {
             // Start a new file
-            if let Some(file) = current_file.take() {
+            if let Some(file) = current_file.borrow_mut().take() {
                 diff_set.files.push(file);
             }
 
@@ -52,18 +53,19 @@ pub fn parse_diff(
                 _ => FileStatus::Modified,
             };
 
-            current_file = Some(FileDiff::new(path, status));
-            hunk_counter = 0;
+            *current_file.borrow_mut() = Some(FileDiff::new(path, status));
+            *hunk_counter.borrow_mut() = 0;
 
             true
         },
         None,
-        Some(&mut |delta, hunk| {
-            if let Some(ref mut file) = current_file {
+        Some(&mut |_delta, hunk| {
+            if let Some(ref mut file) = *current_file.borrow_mut() {
                 let header = String::from_utf8_lossy(hunk.header()).to_string();
+                let counter = *hunk_counter.borrow();
 
                 let hunk_obj = Hunk::new(
-                    hunk_counter,
+                    counter,
                     header.trim().to_string(),
                     hunk.old_start(),
                     hunk.old_lines(),
@@ -72,13 +74,13 @@ pub fn parse_diff(
                 );
 
                 file.hunks.push(hunk_obj);
-                hunk_counter += 1;
+                *hunk_counter.borrow_mut() += 1;
             }
 
             true
         }),
         Some(&mut |_delta, _hunk, line| {
-            if let Some(ref mut file) = current_file {
+            if let Some(ref mut file) = *current_file.borrow_mut() {
                 if let Some(current_hunk) = file.hunks.last_mut() {
                     let origin = LineOrigin::from_git2(line.origin());
                     let content = String::from_utf8_lossy(line.content()).to_string();
@@ -96,7 +98,7 @@ pub fn parse_diff(
     )?;
 
     // Don't forget the last file
-    if let Some(file) = current_file {
+    if let Some(file) = current_file.borrow_mut().take() {
         diff_set.files.push(file);
     }
 

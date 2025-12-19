@@ -31,10 +31,10 @@ pub fn detect_main_branch(repo: &Repository) -> Result<String> {
 }
 
 /// Get HEAD and main branch commits
-pub fn get_commits(
-    repo: &Repository,
+pub fn get_commits<'a>(
+    repo: &'a Repository,
     main_branch: &str,
-) -> Result<(git2::Commit, git2::Commit)> {
+) -> Result<(git2::Commit<'a>, git2::Commit<'a>)> {
     // Get HEAD commit
     let head = repo.head()?;
     let head_commit = head.peel_to_commit()?;
