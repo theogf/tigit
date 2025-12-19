@@ -106,13 +106,19 @@ fn run_app(
                         // Apply reversions
                         match git::revert::apply_and_stage_reversions(repo, &app.diff_set) {
                             Ok(count) => {
-                                app.status_message =
-                                    Some(format!("Applied {} reversions and staged", count));
-                                // After successful application, we should probably exit or refresh
-                                // For now, let's just show the message
+                                // Clear all selections after successful application
+                                for file in &mut app.diff_set.files {
+                                    for hunk in &mut file.hunks {
+                                        hunk.selected = false;
+                                    }
+                                }
+                                app.status_message = Some(format!(
+                                    "Applied {} reversions and staged. Review with 'git diff --cached'. Press q to exit.",
+                                    count
+                                ));
                             }
                             Err(e) => {
-                                app.status_message = Some(format!("Error: {}", e));
+                                app.status_message = Some(format!("Error applying reversions: {}", e));
                             }
                         }
                     }

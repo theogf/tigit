@@ -79,10 +79,17 @@ pub fn apply_and_stage_reversions(repo: &Repository, diff_set: &DiffSet) -> Resu
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr);
-        return Err(crate::error::GitDiffError::Other(format!(
-            "Failed to apply patch: {}",
-            error
-        )));
+
+        // Provide helpful error messages for common cases
+        let message = if error.contains("patch does not apply") {
+            "Reversions already applied or working directory has changed. The diff shown is now stale.".to_string()
+        } else if error.contains("already exists in working directory") {
+            "Changes already reverted. Try refreshing or restart the application.".to_string()
+        } else {
+            format!("Failed to apply patch: {}", error.trim())
+        };
+
+        return Err(crate::error::GitDiffError::Other(message));
     }
 
     Ok(diff_set.selected_hunks())
