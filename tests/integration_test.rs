@@ -1,6 +1,5 @@
 use git2::{Repository, Signature};
 use std::fs;
-use std::path::Path;
 use tempfile::TempDir;
 
 // Helper function to create a test git repository
@@ -74,21 +73,26 @@ fn test_extract_diff_simple() {
     let (_temp_dir, repo) = create_test_repo();
     let repo_path = repo.path().parent().unwrap();
 
-    // Create main branch with initial file
+    // Create initial file and commit on main
     fs::write(repo_path.join("file.txt"), "line 1\nline 2\nline 3\n").unwrap();
-    create_commit(&repo, "Initial commit on main");
+    let main_commit_id = create_commit(&repo, "Initial commit on main");
+    let main_commit = repo.find_commit(main_commit_id).unwrap();
 
-    // Create a branch reference for main
-    let head = repo.head().unwrap();
-    let commit = head.peel_to_commit().unwrap();
-    repo.branch("main", &commit, false).unwrap();
+    // Ensure main branch exists and points to this commit
+    let branch_name = "main";
+    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+        repo.branch(branch_name, &main_commit, false).unwrap();
+    }
 
-    // Make changes on HEAD
+    // Detach HEAD to make changes without moving the main branch
+    repo.set_head_detached(main_commit_id).unwrap();
+
+    // Make changes and commit (HEAD advances, main stays)
     fs::write(repo_path.join("file.txt"), "line 1\nmodified line 2\nline 3\nnew line 4\n").unwrap();
     create_commit(&repo, "Modify file");
 
-    // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, "main");
+    // Extract diff between HEAD and main
+    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name);
 
     assert!(diff_set.is_ok());
     let diff_set = diff_set.unwrap();
@@ -106,11 +110,17 @@ fn test_diff_with_multiple_files() {
     // Create main branch with multiple files
     fs::write(repo_path.join("file1.txt"), "content 1\n").unwrap();
     fs::write(repo_path.join("file2.txt"), "content 2\n").unwrap();
-    create_commit(&repo, "Initial commit");
+    let main_commit_id = create_commit(&repo, "Initial commit");
+    let main_commit = repo.find_commit(main_commit_id).unwrap();
 
-    let head = repo.head().unwrap();
-    let commit = head.peel_to_commit().unwrap();
-    repo.branch("main", &commit, false).unwrap();
+    // Ensure main branch exists
+    let branch_name = "main";
+    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+        repo.branch(branch_name, &main_commit, false).unwrap();
+    }
+
+    // Detach HEAD
+    repo.set_head_detached(main_commit_id).unwrap();
 
     // Modify both files
     fs::write(repo_path.join("file1.txt"), "modified content 1\n").unwrap();
@@ -118,7 +128,7 @@ fn test_diff_with_multiple_files() {
     create_commit(&repo, "Modify both files");
 
     // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, "main").unwrap();
+    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name).unwrap();
 
     assert_eq!(diff_set.files.len(), 2);
 }
@@ -130,18 +140,24 @@ fn test_diff_with_new_file() {
 
     // Create main branch
     fs::write(repo_path.join("existing.txt"), "content\n").unwrap();
-    create_commit(&repo, "Initial commit");
+    let main_commit_id = create_commit(&repo, "Initial commit");
+    let main_commit = repo.find_commit(main_commit_id).unwrap();
 
-    let head = repo.head().unwrap();
-    let commit = head.peel_to_commit().unwrap();
-    repo.branch("main", &commit, false).unwrap();
+    // Ensure main branch exists
+    let branch_name = "main";
+    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+        repo.branch(branch_name, &main_commit, false).unwrap();
+    }
+
+    // Detach HEAD
+    repo.set_head_detached(main_commit_id).unwrap();
 
     // Add new file
     fs::write(repo_path.join("new.txt"), "new content\n").unwrap();
     create_commit(&repo, "Add new file");
 
     // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, "main").unwrap();
+    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name).unwrap();
 
     // Should show the new file
     let new_file = diff_set.files.iter().find(|f| f.path == "new.txt");
@@ -156,18 +172,24 @@ fn test_diff_with_deleted_file() {
 
     // Create main branch with file to delete
     fs::write(repo_path.join("to_delete.txt"), "content\n").unwrap();
-    create_commit(&repo, "Initial commit");
+    let main_commit_id = create_commit(&repo, "Initial commit");
+    let main_commit = repo.find_commit(main_commit_id).unwrap();
 
-    let head = repo.head().unwrap();
-    let commit = head.peel_to_commit().unwrap();
-    repo.branch("main", &commit, false).unwrap();
+    // Ensure main branch exists
+    let branch_name = "main";
+    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+        repo.branch(branch_name, &main_commit, false).unwrap();
+    }
+
+    // Detach HEAD
+    repo.set_head_detached(main_commit_id).unwrap();
 
     // Delete the file
     fs::remove_file(repo_path.join("to_delete.txt")).unwrap();
     create_commit(&repo, "Delete file");
 
     // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, "main").unwrap();
+    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name).unwrap();
 
     // Should show the deleted file
     let deleted_file = diff_set.files.iter().find(|f| f.path == "to_delete.txt");
