@@ -126,6 +126,19 @@ src/
 - `regex` - Pattern matching
 - `unicode-width` - Text alignment
 
+## Testing
+
+The project includes a comprehensive test suite with **58 tests**:
+- **50 unit tests** covering core functionality (data structures, selection, parsing, reverse patch generation)
+- **8 integration tests** using temporary git repositories to test real git operations
+
+Run tests with:
+```bash
+cargo test
+```
+
+See [TESTING.md](TESTING.md) for detailed testing documentation.
+
 ## Limitations
 
 - Compares commits (HEAD vs main), not working directory changes
