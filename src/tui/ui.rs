@@ -117,7 +117,7 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App) {
     let help_text = if let Some(ref msg) = app.status_message {
         msg.clone()
     } else {
-        "↑/↓: Navigate  Space: Select  Enter: Apply  q: Quit  ?: Help".to_string()
+        "↑/↓: Navigate  Space: Select (green=will revert)  Enter: Undo selected changes  q: Quit  ?: Help".to_string()
     };
 
     let footer = Paragraph::new(Line::from(vec![Span::styled(
