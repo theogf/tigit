@@ -48,6 +48,19 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
         Line::from("  r            - Refresh diff"),
         Line::from(""),
         Line::from(vec![Span::styled(
+            "What is 'Revert'?",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        )]),
+        Line::from("  Reverting UNDOES selected changes by restoring the"),
+        Line::from("  main branch version. Selected hunks (green) will be"),
+        Line::from("  reversed and staged, ready to commit."),
+        Line::from(""),
+        Line::from("  Example: If you changed 'v1.0' to 'v2.0' and revert"),
+        Line::from("  that hunk, it goes back to 'v1.0'."),
+        Line::from(""),
+        Line::from(vec![Span::styled(
             "Other:",
             Style::default().add_modifier(Modifier::BOLD),
         )]),
