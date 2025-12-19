@@ -61,14 +61,39 @@ git-main-diff --allow-dirty
 
 ## How It Works
 
-1. Compares the current git HEAD commit to the main branch
-2. Displays differences in a side-by-side view:
-   - Left column: Main branch version
-   - Right column: HEAD version
-3. Select hunks you want to revert (restore main branch version)
-4. Press Enter to apply reversions and stage them with git
-5. Review staged changes with `git diff --cached`
-6. Commit the changes if desired
+### Understanding the Revert Feature
+
+**What is a "revert"?**
+Reverting a hunk means **undoing** specific changes from your current branch by restoring the main branch version of that code. This is useful when you've made multiple changes but want to keep only some of them.
+
+**Example:**
+- Main branch has: `version = "1.0"`
+- Your HEAD has: `version = "2.0"` (you changed it)
+- **Reverting this hunk** restores it back to: `version = "1.0"`
+
+### Step-by-Step Process
+
+1. **Compare commits:** The tool compares your current git HEAD commit to the main branch
+2. **View differences:** Shows side-by-side:
+   - **Left column:** Main branch version (what you had before)
+   - **Right column:** HEAD version (what you have now)
+   - **Green background:** Selected hunks that will be reverted
+3. **Select hunks:** Use `Space` to mark hunks for reverting
+   - Selected hunks will have their changes **undone** (restored to main branch version)
+4. **Apply reversions:** Press `Enter` to:
+   - Generate a reverse patch that undoes the selected changes
+   - Apply the patch to your working directory
+   - **Stage the reversions** with git (ready to commit)
+5. **Review:** Check staged changes with `git diff --cached`
+6. **Commit:** If satisfied, commit the reversions
+
+### What Gets Staged
+
+When you press Enter:
+- The selected hunks are **reversed** (their changes are undone)
+- The reversed changes are **automatically staged** (added to git index)
+- Your working directory files are modified to match the main branch for those hunks
+- Other hunks (not selected) remain unchanged
 
 ## Example Workflow
 
