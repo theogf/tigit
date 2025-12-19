@@ -37,15 +37,9 @@ fn main() -> Result<()> {
     // Open repository
     let repo = git::repository::open_repository(cli.path.as_deref())?;
 
-    // Check if working directory is clean (unless --allow-dirty)
-    if !cli.allow_dirty {
-        if !git::repository::is_working_directory_clean(&repo)? {
-            eprintln!("Warning: Working directory is dirty.");
-            eprintln!("Some uncommitted changes exist. This tool compares commits, not working directory.");
-            eprintln!("Use --allow-dirty to suppress this warning.");
-            eprintln!();
-        }
-    }
+    // Note: The tool works fine with a dirty working directory
+    // It compares the merge base to HEAD (committed changes only)
+    // Uncommitted changes in the working directory are not included in the diff
 
     // Detect or use specified main branch
     let main_branch = if let Some(branch) = cli.branch {
