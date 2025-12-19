@@ -99,3 +99,260 @@ pub fn stage_files(repo: &Repository, file_paths: &[&str]) -> Result<()> {
     index.write()?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::diff::types::{DiffLine, DiffSet, FileDiff, FileStatus, Hunk, LineOrigin};
+
+    #[test]
+    fn test_create_reverse_patch_empty() {
+        let diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+        assert!(patch.is_empty());
+    }
+
+    #[test]
+    fn test_create_reverse_patch_no_selection() {
+        let mut diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
+        let mut hunk = Hunk::new(0, "@@ -10,3 +10,3 @@".to_string(), 10, 3, 10, 3);
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Context,
+            "line 10\n".to_string(),
+            Some(10),
+            Some(10),
+        ));
+        file.hunks.push(hunk);
+        diff_set.files.push(file);
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+        assert!(patch.is_empty());
+    }
+
+    #[test]
+    fn test_create_reverse_patch_simple_addition() {
+        let mut diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
+        let mut hunk = Hunk::new(0, "@@ -10,2 +10,3 @@".to_string(), 10, 2, 10, 3);
+        hunk.selected = true;
+
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Context,
+            "line 10\n".to_string(),
+            Some(10),
+            Some(10),
+        ));
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Addition,
+            "new line\n".to_string(),
+            None,
+            Some(11),
+        ));
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Context,
+            "line 11\n".to_string(),
+            Some(11),
+            Some(12),
+        ));
+
+        file.hunks.push(hunk);
+        diff_set.files.push(file);
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+
+        assert!(patch.contains("diff --git a/test.txt b/test.txt"));
+        assert!(patch.contains("--- a/test.txt"));
+        assert!(patch.contains("+++ b/test.txt"));
+        assert!(patch.contains("@@ -10,3 +10,2 @@"));
+        assert!(patch.contains(" line 10"));
+        assert!(patch.contains("-new line"));
+        assert!(patch.contains(" line 11"));
+    }
+
+    #[test]
+    fn test_create_reverse_patch_simple_deletion() {
+        let mut diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
+        let mut hunk = Hunk::new(0, "@@ -10,3 +10,2 @@".to_string(), 10, 3, 10, 2);
+        hunk.selected = true;
+
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Context,
+            "line 10\n".to_string(),
+            Some(10),
+            Some(10),
+        ));
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Deletion,
+            "deleted line\n".to_string(),
+            Some(11),
+            None,
+        ));
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Context,
+            "line 12\n".to_string(),
+            Some(12),
+            Some(11),
+        ));
+
+        file.hunks.push(hunk);
+        diff_set.files.push(file);
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+
+        assert!(patch.contains("@@ -10,2 +10,3 @@"));
+        assert!(patch.contains(" line 10"));
+        assert!(patch.contains("+deleted line"));
+        assert!(patch.contains(" line 12"));
+    }
+
+    #[test]
+    fn test_create_reverse_patch_multiple_hunks() {
+        let mut diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
+
+        // First hunk - selected
+        let mut hunk1 = Hunk::new(0, "@@ -1,1 +1,2 @@".to_string(), 1, 1, 1, 2);
+        hunk1.selected = true;
+        hunk1.lines.push(DiffLine::new(
+            LineOrigin::Context,
+            "line 1\n".to_string(),
+            Some(1),
+            Some(1),
+        ));
+        hunk1.lines.push(DiffLine::new(
+            LineOrigin::Addition,
+            "new line\n".to_string(),
+            None,
+            Some(2),
+        ));
+
+        // Second hunk - not selected
+        let mut hunk2 = Hunk::new(1, "@@ -10,1 +11,1 @@".to_string(), 10, 1, 11, 1);
+        hunk2.selected = false;
+        hunk2.lines.push(DiffLine::new(
+            LineOrigin::Addition,
+            "another line\n".to_string(),
+            None,
+            Some(11),
+        ));
+
+        // Third hunk - selected
+        let mut hunk3 = Hunk::new(2, "@@ -20,1 +22,1 @@".to_string(), 20, 1, 22, 1);
+        hunk3.selected = true;
+        hunk3.lines.push(DiffLine::new(
+            LineOrigin::Deletion,
+            "removed\n".to_string(),
+            Some(20),
+            None,
+        ));
+
+        file.hunks.push(hunk1);
+        file.hunks.push(hunk2);
+        file.hunks.push(hunk3);
+        diff_set.files.push(file);
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+
+        // Should contain first and third hunks, but not second
+        assert!(patch.contains("@@ -1,2 +1,1 @@"));
+        assert!(!patch.contains("@@ -11,1 +10,1 @@")); // Second hunk should not be in patch
+        assert!(patch.contains("@@ -22,1 +20,1 @@"));
+    }
+
+    #[test]
+    fn test_create_reverse_patch_multiple_files() {
+        let mut diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        // First file
+        let mut file1 = FileDiff::new("file1.txt".to_string(), FileStatus::Modified);
+        let mut hunk1 = Hunk::new(0, "@@ -1,1 +1,2 @@".to_string(), 1, 1, 1, 2);
+        hunk1.selected = true;
+        hunk1.lines.push(DiffLine::new(
+            LineOrigin::Addition,
+            "added\n".to_string(),
+            None,
+            Some(2),
+        ));
+        file1.hunks.push(hunk1);
+
+        // Second file
+        let mut file2 = FileDiff::new("file2.txt".to_string(), FileStatus::Modified);
+        let mut hunk2 = Hunk::new(0, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1);
+        hunk2.selected = true;
+        hunk2.lines.push(DiffLine::new(
+            LineOrigin::Deletion,
+            "removed\n".to_string(),
+            Some(5),
+            None,
+        ));
+        file2.hunks.push(hunk2);
+
+        diff_set.files.push(file1);
+        diff_set.files.push(file2);
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+
+        assert!(patch.contains("diff --git a/file1.txt b/file1.txt"));
+        assert!(patch.contains("diff --git a/file2.txt b/file2.txt"));
+    }
+
+    #[test]
+    fn test_reverse_patch_line_without_newline() {
+        let mut diff_set = DiffSet::new(
+            "head".to_string(),
+            "main".to_string(),
+            "main".to_string(),
+        );
+
+        let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
+        let mut hunk = Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1);
+        hunk.selected = true;
+
+        // Line without trailing newline
+        hunk.lines.push(DiffLine::new(
+            LineOrigin::Addition,
+            "no newline".to_string(),
+            None,
+            Some(1),
+        ));
+
+        file.hunks.push(hunk);
+        diff_set.files.push(file);
+
+        let patch = create_reverse_patch(&diff_set).unwrap();
+
+        // Should add newline
+        assert!(patch.contains("-no newline\n"));
+    }
+}
