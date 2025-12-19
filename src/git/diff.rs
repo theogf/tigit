@@ -105,7 +105,8 @@ pub fn parse_diff(
     Ok(diff_set)
 }
 
-/// Extract and parse diff in one call
+/// Extract and parse diff in one call using merge base (main...HEAD)
+/// This shows only changes on the current branch since diverging from main
 pub fn extract_diff_set(
     repo: &Repository,
     main_branch: &str,
@@ -114,11 +115,21 @@ pub fn extract_diff_set(
 
     let (head_commit, main_commit) = get_commits(repo, main_branch)?;
 
-    let head_id = head_commit.id().to_string();
-    let main_id = main_commit.id().to_string();
+    // Find merge base (common ancestor) for three-dot diff
+    let merge_base_oid = repo.merge_base(head_commit.id(), main_commit.id())?;
+    let merge_base_commit = repo.find_commit(merge_base_oid)?;
 
-    let diff = get_diff(repo, &main_commit, &head_commit)?;
-    let diff_set = parse_diff(&diff, head_id, main_id, main_branch.to_string())?;
+    let head_id = head_commit.id().to_string();
+    let base_id = merge_base_commit.id().to_string();
+
+    // Diff from merge base to HEAD (shows only changes on this branch)
+    let diff = get_diff(repo, &merge_base_commit, &head_commit)?;
+    let diff_set = parse_diff(
+        &diff,
+        head_id,
+        base_id.clone(),
+        format!("{}...HEAD (merge base: {})", main_branch, &base_id[..7]),
+    )?;
 
     if diff_set.is_empty() {
         return Err(GitDiffError::NoDifferences(main_branch.to_string()));

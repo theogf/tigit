@@ -163,8 +163,8 @@ pub fn render_diff_hunk(
     }
 
     let title = match side {
-        DiffSide::Left => " Main Branch ",
-        DiffSide::Right => " HEAD ",
+        DiffSide::Left => " Merge Base (before your changes) ",
+        DiffSide::Right => " HEAD (your changes) ",
     };
 
     let block = Block::default()

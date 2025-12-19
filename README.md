@@ -61,19 +61,33 @@ git-main-diff --allow-dirty
 
 ## How It Works
 
+### Merge-Base Diff (main...HEAD)
+
+The tool uses **three-dot notation** (`main...HEAD`) showing only changes on your branch since diverging from main:
+```bash
+# Equivalent to:
+git diff $(git merge-base main HEAD)..HEAD
+```
+
+**Why this matters:**
+- Shows only **your branch's changes**, excluding main's evolution
+- Standard for pull request reviews
+- Example: If main moved from A→B→C and you branched at B creating D→E, only shows D→E
+
 ### Understanding the Revert Feature
 
 **What is a "revert"?**
-Reverting a hunk means **undoing** specific changes from your current branch by restoring the main branch version of that code. This is useful when you've made multiple changes but want to keep only some of them.
+Reverting a hunk means **undoing** specific changes from your current branch by restoring the merge-base version. Useful when you've made multiple changes but want to keep only some.
 
 **Example:**
-- Main branch has: `version = "1.0"`
+- Merge base has: `version = "1.0"`
 - Your HEAD has: `version = "2.0"` (you changed it)
 - **Reverting this hunk** restores it back to: `version = "1.0"`
 
 ### Step-by-Step Process
 
-1. **Compare commits:** The tool compares your current git HEAD commit to the main branch
+1. **Find merge base:** Finds common ancestor between main and HEAD
+2. **Compare commits:** Shows changes from merge base to your current HEAD
 2. **View differences:** Shows side-by-side:
    - **Left column:** Main branch version (what you had before)
    - **Right column:** HEAD version (what you have now)
