@@ -94,36 +94,3 @@ jobs:
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
           overwrite: true
-
-  create-checksums:
-    name: Create checksums
-    needs: build-and-upload
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Generate checksums
-        run: |
-          cd artifacts
-          for file in */tigit*; do
-            if [ -f "$file" ]; then
-              sha256sum "$file" >> ../checksums.txt
-            fi
-          done
-          cd ..
-
-      - name: Upload checksums
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: checksums.txt
-          asset_name: checksums.txt
-          tag: ${{ github.ref }}
-          overwrite: true
