@@ -4,6 +4,9 @@
 
 An interactive TUI (Terminal User Interface) for comparing git HEAD with the main branch and selectively reverting changes.
 
+> [!WARNING]
+> This project was vibecoded with [Claude](https://claude.ai). While functional and tested, use at your own risk.
+
 ## Features
 
 - Side-by-side diff view comparing HEAD and main branch
