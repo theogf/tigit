@@ -10,9 +10,8 @@ use std::sync::OnceLock;
 #[allow(dead_code)]
 pub fn parse_hunk_header(header: &str) -> Result<(u32, u32, u32, u32)> {
     static HUNK_REGEX: OnceLock<Regex> = OnceLock::new();
-    let re = HUNK_REGEX.get_or_init(|| {
-        Regex::new(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@").unwrap()
-    });
+    let re = HUNK_REGEX
+        .get_or_init(|| Regex::new(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@").unwrap());
 
     if let Some(caps) = re.captures(header) {
         let old_start = caps.get(1).unwrap().as_str().parse::<u32>().unwrap();

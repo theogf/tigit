@@ -1,5 +1,5 @@
-use crate::diff::types::DiffSet;
 use crate::diff::selection;
+use crate::diff::types::DiffSet;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub struct App {
@@ -78,10 +78,10 @@ impl App {
                 AppAction::Continue
             }
             KeyCode::End => {
-                if let Some(file) = self.diff_set.files.get(self.current_file) {
-                    if !file.hunks.is_empty() {
-                        self.current_hunk = file.hunks.len() - 1;
-                    }
+                if let Some(file) = self.diff_set.files.get(self.current_file)
+                    && !file.hunks.is_empty()
+                {
+                    self.current_hunk = file.hunks.len() - 1;
                 }
                 AppAction::Continue
             }
@@ -136,10 +136,10 @@ impl App {
         } else {
             // Move to previous file's last hunk
             self.previous_file();
-            if let Some(file) = self.diff_set.files.get(self.current_file) {
-                if !file.hunks.is_empty() {
-                    self.current_hunk = file.hunks.len() - 1;
-                }
+            if let Some(file) = self.diff_set.files.get(self.current_file)
+                && !file.hunks.is_empty()
+            {
+                self.current_hunk = file.hunks.len() - 1;
             }
         }
     }
@@ -160,10 +160,7 @@ impl App {
 
     fn toggle_current_hunk(&mut self) {
         selection::toggle_hunk_selection(&mut self.diff_set, self.current_file, self.current_hunk);
-        self.status_message = Some(format!(
-            "{} hunks selected",
-            self.diff_set.selected_hunks()
-        ));
+        self.status_message = Some(format!("{} hunks selected", self.diff_set.selected_hunks()));
     }
 
     fn select_all_in_current_file(&mut self) {

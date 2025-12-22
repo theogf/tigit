@@ -1,11 +1,11 @@
 use super::app::App;
 use super::widgets::{diff_view, help};
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 
 pub fn render(frame: &mut Frame, app: &App) {
@@ -107,8 +107,8 @@ fn render_content(frame: &mut Frame, area: Rect, app: &App) {
             frame.render_widget(no_hunks, file_chunks[1]);
         }
     } else {
-        let no_files = Paragraph::new("No files to display")
-            .block(Block::default().borders(Borders::ALL));
+        let no_files =
+            Paragraph::new("No files to display").block(Block::default().borders(Borders::ALL));
         frame.render_widget(no_files, area);
     }
 }

@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
-    Frame,
 };
 
 pub fn render_help(frame: &mut Frame, area: Rect) {
@@ -47,10 +47,10 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
         Line::from("  Enter        - Apply selected reversions (stage with git)"),
         Line::from("  r            - Refresh diff"),
         Line::from(""),
-        Line::from(vec![Span::styled(
-            "Note:",
-            Style::default().fg(Color::Yellow),
-        ), Span::raw(" After applying, selections clear. Quit & restart")]),
+        Line::from(vec![
+            Span::styled("Note:", Style::default().fg(Color::Yellow)),
+            Span::raw(" After applying, selections clear. Quit & restart"),
+        ]),
         Line::from("      to see updated diff. Don't apply same changes twice!"),
         Line::from(""),
         Line::from(vec![Span::styled(

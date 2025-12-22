@@ -1,10 +1,10 @@
 use crate::diff::types::{DiffLine, Hunk, LineOrigin};
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 
 /// Represents an aligned pair of lines for side-by-side rendering

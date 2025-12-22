@@ -16,10 +16,7 @@ pub fn create_reverse_patch(diff_set: &DiffSet) -> Result<String> {
         }
 
         // Diff header
-        patch.push_str(&format!(
-            "diff --git a/{} b/{}\n",
-            file.path, file.path
-        ));
+        patch.push_str(&format!("diff --git a/{} b/{}\n", file.path, file.path));
         patch.push_str(&format!("--- a/{}\n", file.path));
         patch.push_str(&format!("+++ b/{}\n", file.path));
 
@@ -115,11 +112,7 @@ mod tests {
 
     #[test]
     fn test_create_reverse_patch_empty() {
-        let diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let patch = create_reverse_patch(&diff_set).unwrap();
         assert!(patch.is_empty());
@@ -127,11 +120,7 @@ mod tests {
 
     #[test]
     fn test_create_reverse_patch_no_selection() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
         let mut hunk = Hunk::new(0, "@@ -10,3 +10,3 @@".to_string(), 10, 3, 10, 3);
@@ -150,11 +139,7 @@ mod tests {
 
     #[test]
     fn test_create_reverse_patch_simple_addition() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
         let mut hunk = Hunk::new(0, "@@ -10,2 +10,3 @@".to_string(), 10, 2, 10, 3);
@@ -195,11 +180,7 @@ mod tests {
 
     #[test]
     fn test_create_reverse_patch_simple_deletion() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
         let mut hunk = Hunk::new(0, "@@ -10,3 +10,2 @@".to_string(), 10, 3, 10, 2);
@@ -237,11 +218,7 @@ mod tests {
 
     #[test]
     fn test_create_reverse_patch_multiple_hunks() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
 
@@ -296,11 +273,7 @@ mod tests {
 
     #[test]
     fn test_create_reverse_patch_multiple_files() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         // First file
         let mut file1 = FileDiff::new("file1.txt".to_string(), FileStatus::Modified);
@@ -337,11 +310,7 @@ mod tests {
 
     #[test]
     fn test_reverse_patch_line_without_newline() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
         let mut hunk = Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1);

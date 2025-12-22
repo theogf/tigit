@@ -18,7 +18,9 @@ fn create_test_repo() -> (TempDir, Repository) {
 // Helper function to create a commit
 fn create_commit(repo: &Repository, message: &str) -> git2::Oid {
     let mut index = repo.index().unwrap();
-    index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None).unwrap();
+    index
+        .add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)
+        .unwrap();
     index.write().unwrap();
 
     let tree_id = index.write_tree().unwrap();
@@ -41,7 +43,8 @@ fn create_commit(repo: &Repository, message: &str) -> git2::Oid {
         message,
         &tree,
         &parents,
-    ).unwrap()
+    )
+    .unwrap()
 }
 
 #[test]
@@ -49,7 +52,8 @@ fn test_repository_opening() {
     let (_temp_dir, repo) = create_test_repo();
 
     // Test that we can open the repository
-    let opened = tigit::git::repository::open_repository(Some(repo.path().parent().unwrap())).unwrap();
+    let opened =
+        tigit::git::repository::open_repository(Some(repo.path().parent().unwrap())).unwrap();
     assert!(!opened.is_bare());
 }
 
@@ -80,7 +84,10 @@ fn test_extract_diff_simple() {
 
     // Ensure main branch exists and points to this commit
     let branch_name = "main";
-    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+    if repo
+        .find_branch(branch_name, git2::BranchType::Local)
+        .is_err()
+    {
         repo.branch(branch_name, &main_commit, false).unwrap();
     }
 
@@ -88,7 +95,11 @@ fn test_extract_diff_simple() {
     repo.set_head_detached(main_commit_id).unwrap();
 
     // Make changes and commit (HEAD advances, main stays)
-    fs::write(repo_path.join("file.txt"), "line 1\nmodified line 2\nline 3\nnew line 4\n").unwrap();
+    fs::write(
+        repo_path.join("file.txt"),
+        "line 1\nmodified line 2\nline 3\nnew line 4\n",
+    )
+    .unwrap();
     create_commit(&repo, "Modify file");
 
     // Extract diff between HEAD and main
@@ -115,7 +126,10 @@ fn test_diff_with_multiple_files() {
 
     // Ensure main branch exists
     let branch_name = "main";
-    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+    if repo
+        .find_branch(branch_name, git2::BranchType::Local)
+        .is_err()
+    {
         repo.branch(branch_name, &main_commit, false).unwrap();
     }
 
@@ -145,7 +159,10 @@ fn test_diff_with_new_file() {
 
     // Ensure main branch exists
     let branch_name = "main";
-    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+    if repo
+        .find_branch(branch_name, git2::BranchType::Local)
+        .is_err()
+    {
         repo.branch(branch_name, &main_commit, false).unwrap();
     }
 
@@ -162,7 +179,10 @@ fn test_diff_with_new_file() {
     // Should show the new file
     let new_file = diff_set.files.iter().find(|f| f.path == "new.txt");
     assert!(new_file.is_some());
-    assert_eq!(new_file.unwrap().status, tigit::diff::types::FileStatus::Added);
+    assert_eq!(
+        new_file.unwrap().status,
+        tigit::diff::types::FileStatus::Added
+    );
 }
 
 #[test]
@@ -177,7 +197,10 @@ fn test_diff_with_deleted_file() {
 
     // Ensure main branch exists
     let branch_name = "main";
-    if repo.find_branch(branch_name, git2::BranchType::Local).is_err() {
+    if repo
+        .find_branch(branch_name, git2::BranchType::Local)
+        .is_err()
+    {
         repo.branch(branch_name, &main_commit, false).unwrap();
     }
 
@@ -194,12 +217,15 @@ fn test_diff_with_deleted_file() {
     // Should show the deleted file
     let deleted_file = diff_set.files.iter().find(|f| f.path == "to_delete.txt");
     assert!(deleted_file.is_some());
-    assert_eq!(deleted_file.unwrap().status, tigit::diff::types::FileStatus::Deleted);
+    assert_eq!(
+        deleted_file.unwrap().status,
+        tigit::diff::types::FileStatus::Deleted
+    );
 }
 
 #[test]
 fn test_reverse_patch_format() {
-    use tigit::diff::types::{DiffSet, FileDiff, FileStatus, Hunk, DiffLine, LineOrigin};
+    use tigit::diff::types::{DiffLine, DiffSet, FileDiff, FileStatus, Hunk, LineOrigin};
     use tigit::git::revert::create_reverse_patch;
 
     let mut diff_set = DiffSet::new(

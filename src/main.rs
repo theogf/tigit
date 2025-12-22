@@ -6,10 +6,10 @@ mod tui;
 use clap::Parser;
 use crossterm::{
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use error::Result;
-use ratatui::{backend::CrosstermBackend, Terminal};
+use ratatui::{Terminal, backend::CrosstermBackend};
 use std::io;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -112,7 +112,8 @@ fn run_app(
                                 ));
                             }
                             Err(e) => {
-                                app.status_message = Some(format!("Error applying reversions: {}", e));
+                                app.status_message =
+                                    Some(format!("Error applying reversions: {}", e));
                             }
                         }
                     }

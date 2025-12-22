@@ -80,17 +80,17 @@ pub fn parse_diff(
             true
         }),
         Some(&mut |_delta, _hunk, line| {
-            if let Some(ref mut file) = *current_file.borrow_mut() {
-                if let Some(current_hunk) = file.hunks.last_mut() {
-                    let origin = LineOrigin::from_git2(line.origin());
-                    let content = String::from_utf8_lossy(line.content()).to_string();
+            if let Some(ref mut file) = *current_file.borrow_mut()
+                && let Some(current_hunk) = file.hunks.last_mut()
+            {
+                let origin = LineOrigin::from_git2(line.origin());
+                let content = String::from_utf8_lossy(line.content()).to_string();
 
-                    let old_lineno = line.old_lineno();
-                    let new_lineno = line.new_lineno();
+                let old_lineno = line.old_lineno();
+                let new_lineno = line.new_lineno();
 
-                    let diff_line = DiffLine::new(origin, content, old_lineno, new_lineno);
-                    current_hunk.lines.push(diff_line);
-                }
+                let diff_line = DiffLine::new(origin, content, old_lineno, new_lineno);
+                current_hunk.lines.push(diff_line);
             }
 
             true
@@ -107,10 +107,7 @@ pub fn parse_diff(
 
 /// Extract and parse diff in one call using merge base (main...HEAD)
 /// This shows only changes on the current branch since diverging from main
-pub fn extract_diff_set(
-    repo: &Repository,
-    main_branch: &str,
-) -> Result<DiffSet> {
+pub fn extract_diff_set(repo: &Repository, main_branch: &str) -> Result<DiffSet> {
     use super::repository::get_commits;
 
     let (head_commit, main_commit) = get_commits(repo, main_branch)?;

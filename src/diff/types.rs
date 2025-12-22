@@ -157,7 +157,7 @@ impl LineOrigin {
         }
     }
 
-    pub fn to_char(&self) -> char {
+    pub fn to_char(self) -> char {
         match self {
             LineOrigin::Context => ' ',
             LineOrigin::Addition => '+',
@@ -192,11 +192,17 @@ mod tests {
         );
 
         let mut file1 = FileDiff::new("file1.txt".to_string(), FileStatus::Modified);
-        file1.hunks.push(Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1));
-        file1.hunks.push(Hunk::new(1, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1));
+        file1
+            .hunks
+            .push(Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1));
+        file1
+            .hunks
+            .push(Hunk::new(1, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1));
 
         let mut file2 = FileDiff::new("file2.txt".to_string(), FileStatus::Modified);
-        file2.hunks.push(Hunk::new(0, "@@ -10,1 +10,1 @@".to_string(), 10, 1, 10, 1));
+        file2
+            .hunks
+            .push(Hunk::new(0, "@@ -10,1 +10,1 @@".to_string(), 10, 1, 10, 1));
 
         diff_set.files.push(file1);
         diff_set.files.push(file2);

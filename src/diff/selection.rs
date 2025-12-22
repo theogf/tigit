@@ -2,10 +2,10 @@ use super::types::{DiffSet, FileDiff};
 
 /// Toggle selection for a specific hunk in a file
 pub fn toggle_hunk_selection(diff_set: &mut DiffSet, file_idx: usize, hunk_idx: usize) {
-    if let Some(file) = diff_set.files.get_mut(file_idx) {
-        if let Some(hunk) = file.hunks.get_mut(hunk_idx) {
-            hunk.toggle_selection();
-        }
+    if let Some(file) = diff_set.files.get_mut(file_idx)
+        && let Some(hunk) = file.hunks.get_mut(hunk_idx)
+    {
+        hunk.toggle_selection();
     }
 }
 
@@ -44,15 +44,13 @@ mod tests {
 
     #[test]
     fn test_toggle_hunk_selection() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
-        file.hunks.push(Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1));
-        file.hunks.push(Hunk::new(1, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1));
+        file.hunks
+            .push(Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1));
+        file.hunks
+            .push(Hunk::new(1, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1));
         diff_set.files.push(file);
 
         // Initially not selected
@@ -69,11 +67,7 @@ mod tests {
 
     #[test]
     fn test_toggle_invalid_indices() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         // Should not panic with invalid indices
         toggle_hunk_selection(&mut diff_set, 0, 0);
@@ -83,9 +77,12 @@ mod tests {
     #[test]
     fn test_select_all_in_file() {
         let mut file = FileDiff::new("test.txt".to_string(), FileStatus::Modified);
-        file.hunks.push(Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1));
-        file.hunks.push(Hunk::new(1, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1));
-        file.hunks.push(Hunk::new(2, "@@ -10,1 +10,1 @@".to_string(), 10, 1, 10, 1));
+        file.hunks
+            .push(Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1));
+        file.hunks
+            .push(Hunk::new(1, "@@ -5,1 +5,1 @@".to_string(), 5, 1, 5, 1));
+        file.hunks
+            .push(Hunk::new(2, "@@ -10,1 +10,1 @@".to_string(), 10, 1, 10, 1));
 
         assert!(!file.hunks[0].selected);
         assert!(!file.hunks[1].selected);
@@ -117,11 +114,7 @@ mod tests {
 
     #[test]
     fn test_get_selected_hunks() {
-        let mut diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let mut diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let mut file1 = FileDiff::new("file1.txt".to_string(), FileStatus::Modified);
         let mut hunk1 = Hunk::new(0, "@@ -1,1 +1,1 @@".to_string(), 1, 1, 1, 1);
@@ -147,11 +140,7 @@ mod tests {
 
     #[test]
     fn test_get_selected_hunks_empty() {
-        let diff_set = DiffSet::new(
-            "head".to_string(),
-            "main".to_string(),
-            "main".to_string(),
-        );
+        let diff_set = DiffSet::new("head".to_string(), "main".to_string(), "main".to_string());
 
         let selected = get_selected_hunks(&diff_set);
         assert!(selected.is_empty());
