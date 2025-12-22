@@ -5,12 +5,14 @@ pub enum GitDiffError {
     #[error("Git error: {0}")]
     Git(#[from] git2::Error),
 
-    #[allow(dead_code)]
-    #[error("Failed to find repository")]
+    #[error(
+        "Not a git repository (or any of the parent directories)\n\n\
+        Hints:\n\
+        - Run this command from within a git repository\n\
+        - Or specify a repository path with --path <PATH>\n\
+        - Initialize a git repository with 'git init' if needed"
+    )]
     RepositoryNotFound,
-
-    #[error("Failed to detect main branch (tried: main, master, origin/main, origin/master)")]
-    MainBranchNotFound,
 
     #[error("No differences found between HEAD and {0}")]
     NoDifferences(String),
