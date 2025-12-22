@@ -52,9 +52,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: target
-        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/Cargo.toml') }}
         restore-keys: |
+          ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}-
           ${{ runner.os }}-cargo-build-target-
+
+    - name: Clean build on Windows (native dependencies fix)
+      if: matrix.os == 'windows-latest'
+      run: cargo clean
 
     - name: Run tests
       run: cargo test --verbose
