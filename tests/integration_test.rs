@@ -49,7 +49,7 @@ fn test_repository_opening() {
     let (_temp_dir, repo) = create_test_repo();
 
     // Test that we can open the repository
-    let opened = git_main_diff::git::repository::open_repository(Some(repo.path().parent().unwrap())).unwrap();
+    let opened = tigit::git::repository::open_repository(Some(repo.path().parent().unwrap())).unwrap();
     assert!(!opened.is_bare());
 }
 
@@ -63,7 +63,7 @@ fn test_detect_main_branch_with_main() {
     create_commit(&repo, "Initial commit");
 
     // Should detect "main" branch (modern default)
-    let branch = git_main_diff::git::repository::detect_main_branch(&repo);
+    let branch = tigit::git::repository::detect_main_branch(&repo);
     // This might be "main" or "master" depending on git config
     assert!(branch.is_ok());
 }
@@ -92,7 +92,7 @@ fn test_extract_diff_simple() {
     create_commit(&repo, "Modify file");
 
     // Extract diff between HEAD and main
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name);
+    let diff_set = tigit::git::diff::extract_diff_set(&repo, branch_name);
 
     assert!(diff_set.is_ok());
     let diff_set = diff_set.unwrap();
@@ -128,7 +128,7 @@ fn test_diff_with_multiple_files() {
     create_commit(&repo, "Modify both files");
 
     // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name).unwrap();
+    let diff_set = tigit::git::diff::extract_diff_set(&repo, branch_name).unwrap();
 
     assert_eq!(diff_set.files.len(), 2);
 }
@@ -157,12 +157,12 @@ fn test_diff_with_new_file() {
     create_commit(&repo, "Add new file");
 
     // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name).unwrap();
+    let diff_set = tigit::git::diff::extract_diff_set(&repo, branch_name).unwrap();
 
     // Should show the new file
     let new_file = diff_set.files.iter().find(|f| f.path == "new.txt");
     assert!(new_file.is_some());
-    assert_eq!(new_file.unwrap().status, git_main_diff::diff::types::FileStatus::Added);
+    assert_eq!(new_file.unwrap().status, tigit::diff::types::FileStatus::Added);
 }
 
 #[test]
@@ -189,18 +189,18 @@ fn test_diff_with_deleted_file() {
     create_commit(&repo, "Delete file");
 
     // Extract diff
-    let diff_set = git_main_diff::git::diff::extract_diff_set(&repo, branch_name).unwrap();
+    let diff_set = tigit::git::diff::extract_diff_set(&repo, branch_name).unwrap();
 
     // Should show the deleted file
     let deleted_file = diff_set.files.iter().find(|f| f.path == "to_delete.txt");
     assert!(deleted_file.is_some());
-    assert_eq!(deleted_file.unwrap().status, git_main_diff::diff::types::FileStatus::Deleted);
+    assert_eq!(deleted_file.unwrap().status, tigit::diff::types::FileStatus::Deleted);
 }
 
 #[test]
 fn test_reverse_patch_format() {
-    use git_main_diff::diff::types::{DiffSet, FileDiff, FileStatus, Hunk, DiffLine, LineOrigin};
-    use git_main_diff::git::revert::create_reverse_patch;
+    use tigit::diff::types::{DiffSet, FileDiff, FileStatus, Hunk, DiffLine, LineOrigin};
+    use tigit::git::revert::create_reverse_patch;
 
     let mut diff_set = DiffSet::new(
         "head123".to_string(),
@@ -251,17 +251,17 @@ fn test_is_working_directory_clean() {
     let repo_path = repo.path().parent().unwrap();
 
     // Initially clean (no commits or files)
-    assert!(git_main_diff::git::repository::is_working_directory_clean(&repo).unwrap());
+    assert!(tigit::git::repository::is_working_directory_clean(&repo).unwrap());
 
     // Add a file but don't commit
     fs::write(repo_path.join("uncommitted.txt"), "content\n").unwrap();
 
     // Should not be clean
-    assert!(!git_main_diff::git::repository::is_working_directory_clean(&repo).unwrap());
+    assert!(!tigit::git::repository::is_working_directory_clean(&repo).unwrap());
 
     // Commit the file
     create_commit(&repo, "Commit file");
 
     // Should be clean again
-    assert!(git_main_diff::git::repository::is_working_directory_clean(&repo).unwrap());
+    assert!(tigit::git::repository::is_working_directory_clean(&repo).unwrap());
 }
