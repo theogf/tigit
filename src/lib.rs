@@ -1,4 +1,4 @@
-// Library interface for git-main-diff
+// Library interface for tigit
 // This allows integration tests to import modules
 
 pub mod diff;

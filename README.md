@@ -1,4 +1,4 @@
-# git-main-diff
+# tigit
 
 An interactive TUI (Terminal User Interface) for comparing git HEAD with the main branch and selectively reverting changes.
 
@@ -17,7 +17,7 @@ An interactive TUI (Terminal User Interface) for comparing git HEAD with the mai
 cargo build --release
 ```
 
-The binary will be available at `target/release/git-main-diff`.
+The binary will be available at `target/release/tigit`.
 
 ## Usage
 
@@ -26,16 +26,16 @@ The binary will be available at `target/release/git-main-diff`.
 cargo run
 
 # Or use the binary
-./target/release/git-main-diff
+./target/release/tigit
 
 # Specify a different repository path
-git-main-diff --path /path/to/repo
+tigit --path /path/to/repo
 
 # Specify a custom branch to compare against
-git-main-diff --branch develop
+tigit --branch develop
 
 # Allow running even with uncommitted changes
-git-main-diff --allow-dirty
+tigit --allow-dirty
 ```
 
 ## Keyboard Shortcuts
@@ -116,8 +116,8 @@ When you press Enter:
 git checkout -b feature/my-feature
 # ... make changes ...
 
-# Run git-main-diff to selectively revert some changes
-git-main-diff
+# Run tigit to selectively revert some changes
+tigit
 
 # In the TUI:
 # - Navigate with ↑/↓

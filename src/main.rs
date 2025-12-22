@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 #[derive(Parser, Debug)]
-#[command(name = "git-main-diff")]
+#[command(name = "tigit")]
 #[command(about = "Interactive TUI for comparing git HEAD with main branch", long_about = None)]
 struct Cli {
     /// Path to git repository (defaults to current directory)

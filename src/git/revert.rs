@@ -63,7 +63,7 @@ pub fn apply_and_stage_reversions(repo: &Repository, diff_set: &DiffSet) -> Resu
 
     // Write patch to a temporary file
     let temp_dir = std::env::temp_dir();
-    let patch_path = temp_dir.join(format!("git-main-diff-{}.patch", std::process::id()));
+    let patch_path = temp_dir.join(format!("tigit-{}.patch", std::process::id()));
     std::fs::write(&patch_path, &patch)?;
 
     // Apply the patch using git apply

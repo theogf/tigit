@@ -33,7 +33,7 @@ pub fn render(frame: &mut Frame, app: &App) {
 
 fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     let title = format!(
-        "git-main-diff: HEAD vs {} ({} files, {} hunks, {} selected)",
+        "tigit: HEAD vs {} ({} files, {} hunks, {} selected)",
         app.diff_set.main_branch_name,
         app.diff_set.files.len(),
         app.diff_set.total_hunks(),
