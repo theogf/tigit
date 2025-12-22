@@ -4,7 +4,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Clear, Paragraph},
 };
 
 /// Represents an aligned pair of lines for side-by-side rendering
@@ -178,6 +178,8 @@ pub fn render_diff_hunk(
 
     let paragraph = Paragraph::new(lines).block(block);
 
+    // Clear the area first to prevent content from previous hunks leaking through
+    frame.render_widget(Clear, area);
     frame.render_widget(paragraph, area);
 }
 
