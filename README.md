@@ -1,3 +1,5 @@
+[![CI](https://github.com/theogf/tigit/actions/workflows/rust.yml/badge.svg)](https://github.com/theogf/tigit/actions/workflows/rust.yml)
+
 # tigit
 
 An interactive TUI (Terminal User Interface) for comparing git HEAD with the main branch and selectively reverting changes.
