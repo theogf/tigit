@@ -54,6 +54,7 @@ pub fn get_commits<'a>(
 }
 
 /// Check if working directory is clean
+#[allow(dead_code)]
 pub fn is_working_directory_clean(repo: &Repository) -> Result<bool> {
     let statuses = repo.statuses(None)?;
     Ok(statuses.is_empty())

@@ -24,6 +24,7 @@ pub fn deselect_all_in_file(file: &mut FileDiff) {
 }
 
 /// Get indices of all selected hunks across all files
+#[allow(dead_code)]
 pub fn get_selected_hunks(diff_set: &DiffSet) -> Vec<(usize, usize)> {
     let mut selected = Vec::new();
     for (file_idx, file) in diff_set.files.iter().enumerate() {

@@ -2,7 +2,9 @@
 #[derive(Debug, Clone)]
 pub struct DiffSet {
     pub files: Vec<FileDiff>,
+    #[allow(dead_code)]
     pub head_commit: String,
+    #[allow(dead_code)]
     pub main_commit: String,
     pub main_branch_name: String,
 }
@@ -51,6 +53,7 @@ impl FileDiff {
         }
     }
 
+    #[allow(dead_code)]
     pub fn selected_hunks(&self) -> usize {
         self.hunks.iter().filter(|h| h.selected).count()
     }
@@ -76,6 +79,7 @@ impl FileStatus {
 /// A logical group of changed lines (diff hunk)
 #[derive(Debug, Clone)]
 pub struct Hunk {
+    #[allow(dead_code)]
     pub id: usize,
     pub header: String,
     pub old_start: u32,

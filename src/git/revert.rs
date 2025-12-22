@@ -96,6 +96,7 @@ pub fn apply_and_stage_reversions(repo: &Repository, diff_set: &DiffSet) -> Resu
 }
 
 /// Alternative: Stage specific file paths (less precise than patch-based approach)
+#[allow(dead_code)]
 pub fn stage_files(repo: &Repository, file_paths: &[&str]) -> Result<()> {
     let mut index = repo.index()?;
 

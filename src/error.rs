@@ -5,6 +5,7 @@ pub enum GitDiffError {
     #[error("Git error: {0}")]
     Git(#[from] git2::Error),
 
+    #[allow(dead_code)]
     #[error("Failed to find repository")]
     RepositoryNotFound,
 
@@ -14,6 +15,7 @@ pub enum GitDiffError {
     #[error("No differences found between HEAD and {0}")]
     NoDifferences(String),
 
+    #[allow(dead_code)]
     #[error("Working directory is dirty. Please commit or stash changes first.")]
     DirtyWorkingDirectory,
 

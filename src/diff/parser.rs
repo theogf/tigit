@@ -7,6 +7,7 @@ use regex::Regex;
 use std::sync::OnceLock;
 
 /// Parse hunk header line like "@@ -10,5 +12,7 @@ function_name"
+#[allow(dead_code)]
 pub fn parse_hunk_header(header: &str) -> Result<(u32, u32, u32, u32)> {
     static HUNK_REGEX: OnceLock<Regex> = OnceLock::new();
     let re = HUNK_REGEX.get_or_init(|| {
