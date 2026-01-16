@@ -91,6 +91,7 @@ fn render_content(frame: &mut Frame, area: Rect, app: &App) {
                 hunk,
                 hunk.selected,
                 diff_view::DiffSide::Left,
+                app.vertical_scroll,
             );
 
             // Right side: HEAD
@@ -100,6 +101,7 @@ fn render_content(frame: &mut Frame, area: Rect, app: &App) {
                 hunk,
                 hunk.selected,
                 diff_view::DiffSide::Right,
+                app.vertical_scroll,
             );
         } else {
             let no_hunks = Paragraph::new("No hunks in this file")

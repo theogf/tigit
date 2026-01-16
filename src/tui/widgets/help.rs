@@ -27,6 +27,7 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
         )]),
         Line::from("  ↑/k          - Previous hunk"),
         Line::from("  ↓/j          - Next hunk"),
+        Line::from("  Shift+↑/↓    - Scroll within hunk"),
         Line::from("  Tab          - Next file"),
         Line::from("  Shift+Tab    - Previous file"),
         Line::from("  PgUp/PgDn    - Scroll by page"),

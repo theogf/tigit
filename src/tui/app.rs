@@ -9,6 +9,7 @@ pub struct App {
     pub show_help: bool,
     pub status_message: Option<String>,
     pub should_quit: bool,
+    pub vertical_scroll: u16,
 }
 
 pub enum AppAction {
@@ -26,6 +27,7 @@ impl App {
             show_help: false,
             status_message: None,
             should_quit: false,
+            vertical_scroll: 0,
         }
     }
 
@@ -50,6 +52,16 @@ impl App {
             KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.should_quit = true;
                 AppAction::Quit
+            }
+
+            // Scroll within hunk (Shift+Arrow)
+            KeyCode::Up if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                self.scroll_up();
+                AppAction::Continue
+            }
+            KeyCode::Down if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                self.scroll_down();
+                AppAction::Continue
             }
 
             // Navigation
@@ -119,10 +131,19 @@ impl App {
         }
     }
 
+    fn scroll_up(&mut self) {
+        self.vertical_scroll = self.vertical_scroll.saturating_sub(1);
+    }
+
+    fn scroll_down(&mut self) {
+        self.vertical_scroll = self.vertical_scroll.saturating_add(1);
+    }
+
     fn next_hunk(&mut self) {
         if let Some(file) = self.diff_set.files.get(self.current_file) {
             if self.current_hunk + 1 < file.hunks.len() {
                 self.current_hunk += 1;
+                self.vertical_scroll = 0;
             } else {
                 // Move to next file
                 self.next_file();
@@ -133,6 +154,7 @@ impl App {
     fn previous_hunk(&mut self) {
         if self.current_hunk > 0 {
             self.current_hunk -= 1;
+            self.vertical_scroll = 0;
         } else {
             // Move to previous file's last hunk
             self.previous_file();
@@ -140,6 +162,7 @@ impl App {
                 && !file.hunks.is_empty()
             {
                 self.current_hunk = file.hunks.len() - 1;
+                self.vertical_scroll = 0;
             }
         }
     }
@@ -148,6 +171,7 @@ impl App {
         if self.current_file + 1 < self.diff_set.files.len() {
             self.current_file += 1;
             self.current_hunk = 0;
+            self.vertical_scroll = 0;
         }
     }
 
@@ -155,6 +179,7 @@ impl App {
         if self.current_file > 0 {
             self.current_file -= 1;
             self.current_hunk = 0;
+            self.vertical_scroll = 0;
         }
     }
 

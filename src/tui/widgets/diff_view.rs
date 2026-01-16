@@ -86,6 +86,7 @@ pub fn render_diff_hunk(
     hunk: &Hunk,
     is_selected: bool,
     side: DiffSide,
+    vertical_scroll: u16,
 ) {
     let mut lines = Vec::new();
 
@@ -106,8 +107,8 @@ pub fn render_diff_hunk(
     // Create aligned line pairs
     let aligned_lines = create_aligned_lines(hunk);
 
-    // Render based on which side we're showing
-    for aligned in &aligned_lines {
+    // Render based on which side we're showing, skipping scrolled lines
+    for aligned in aligned_lines.iter().skip(vertical_scroll as usize) {
         match side {
             DiffSide::Left => {
                 if let Some(line) = &aligned.left {
