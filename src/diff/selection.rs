@@ -23,6 +23,24 @@ pub fn deselect_all_in_file(file: &mut FileDiff) {
     }
 }
 
+/// Select all hunks across all files
+pub fn select_all_global(diff_set: &mut DiffSet) {
+    for file in &mut diff_set.files {
+        for hunk in &mut file.hunks {
+            hunk.selected = true;
+        }
+    }
+}
+
+/// Deselect all hunks across all files
+pub fn deselect_all_global(diff_set: &mut DiffSet) {
+    for file in &mut diff_set.files {
+        for hunk in &mut file.hunks {
+            hunk.selected = false;
+        }
+    }
+}
+
 /// Get indices of all selected hunks across all files
 #[allow(dead_code)]
 pub fn get_selected_hunks(diff_set: &DiffSet) -> Vec<(usize, usize)> {

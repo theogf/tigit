@@ -87,6 +87,7 @@ pub fn render_diff_hunk(
     is_selected: bool,
     side: DiffSide,
     vertical_scroll: u16,
+    horizontal_scroll: u16,
 ) {
     let mut lines = Vec::new();
 
@@ -126,9 +127,15 @@ pub fn render_diff_hunk(
                     let prefix = line.origin.to_char();
                     let content = line.content.trim_end_matches('\n');
 
+                    // Apply horizontal scrolling
+                    let scrolled_content: String = content
+                        .chars()
+                        .skip(horizontal_scroll as usize)
+                        .collect();
+
                     lines.push(Line::from(vec![
                         Span::styled(lineno, Style::default().fg(Color::DarkGray)),
-                        Span::styled(format!("{} {}", prefix, content), style),
+                        Span::styled(format!("{} {}", prefix, scrolled_content), style),
                     ]));
                 } else {
                     // Blank line (right side has content)
@@ -151,9 +158,15 @@ pub fn render_diff_hunk(
                     let prefix = line.origin.to_char();
                     let content = line.content.trim_end_matches('\n');
 
+                    // Apply horizontal scrolling
+                    let scrolled_content: String = content
+                        .chars()
+                        .skip(horizontal_scroll as usize)
+                        .collect();
+
                     lines.push(Line::from(vec![
                         Span::styled(lineno, Style::default().fg(Color::DarkGray)),
-                        Span::styled(format!("{} {}", prefix, content), style),
+                        Span::styled(format!("{} {}", prefix, scrolled_content), style),
                     ]));
                 } else {
                     // Blank line (left side has content)
@@ -165,7 +178,7 @@ pub fn render_diff_hunk(
 
     let title = match side {
         DiffSide::Left => " Merge Base (before your changes) ",
-        DiffSide::Right => " HEAD (your changes) ",
+        DiffSide::Right => " Working Directory (your changes) ",
     };
 
     let block = Block::default()

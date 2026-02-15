@@ -37,9 +37,9 @@ fn main() -> Result<()> {
     // Open repository
     let repo = git::repository::open_repository(cli.path.as_deref())?;
 
-    // Note: The tool works fine with a dirty working directory
-    // It compares the merge base to HEAD (committed changes only)
-    // Uncommitted changes in the working directory are not included in the diff
+    // The tool compares the merge base to the working directory
+    // This includes both committed changes on the branch AND uncommitted changes
+    // This allows reverting both staged and unstaged modifications
 
     // Detect or use specified main branch
     let main_branch = if let Some(branch) = cli.branch {
@@ -49,7 +49,7 @@ fn main() -> Result<()> {
     };
 
     // Extract diff
-    println!("Comparing HEAD with {}...", main_branch);
+    println!("Comparing working directory with {}...", main_branch);
     let diff_set = git::diff::extract_diff_set(&repo, &main_branch)?;
 
     println!(
@@ -66,7 +66,7 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     // Run the app
-    let result = run_app(&mut terminal, diff_set, &repo);
+    let result = run_app(&mut terminal, diff_set, &repo, &main_branch);
 
     // Restore terminal
     disable_raw_mode()?;
@@ -80,6 +80,7 @@ fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     diff_set: diff::types::DiffSet,
     repo: &git2::Repository,
+    main_branch: &str,
 ) -> Result<()> {
     let mut app = tui::app::App::new(diff_set);
 
@@ -115,6 +116,26 @@ fn run_app(
                                 app.status_message =
                                     Some(format!("Error applying reversions: {}", e));
                             }
+                        }
+                    }
+                }
+                tui::app::AppAction::Refresh => {
+                    // Re-extract diff from git
+                    match git::diff::extract_diff_set(repo, main_branch) {
+                        Ok(new_diff_set) => {
+                            app.diff_set = new_diff_set;
+                            app.current_file = 0;
+                            app.current_hunk = 0;
+                            app.vertical_scroll = 0;
+                            app.horizontal_scroll = 0;
+                            app.status_message = Some(format!(
+                                "Refreshed: {} files, {} hunks",
+                                app.diff_set.files.len(),
+                                app.diff_set.total_hunks()
+                            ));
+                        }
+                        Err(e) => {
+                            app.status_message = Some(format!("Error refreshing diff: {}", e));
                         }
                     }
                 }

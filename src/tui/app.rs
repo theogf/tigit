@@ -10,12 +10,16 @@ pub struct App {
     pub status_message: Option<String>,
     pub should_quit: bool,
     pub vertical_scroll: u16,
+    pub horizontal_scroll: u16,
+    pub show_confirmation: bool,
+    pub needs_refresh: bool,
 }
 
 pub enum AppAction {
     Continue,
     Quit,
     ApplyReversions,
+    Refresh,
 }
 
 impl App {
@@ -28,6 +32,9 @@ impl App {
             status_message: None,
             should_quit: false,
             vertical_scroll: 0,
+            horizontal_scroll: 0,
+            show_confirmation: false,
+            needs_refresh: false,
         }
     }
 
@@ -44,6 +51,22 @@ impl App {
             return AppAction::Continue;
         }
 
+        // Confirmation dialog handling
+        if self.show_confirmation {
+            match key.code {
+                KeyCode::Enter | KeyCode::Char('y') => {
+                    self.show_confirmation = false;
+                    return AppAction::ApplyReversions;
+                }
+                KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('q') => {
+                    self.show_confirmation = false;
+                    self.status_message = Some("Cancelled".to_string());
+                    return AppAction::Continue;
+                }
+                _ => return AppAction::Continue,
+            }
+        }
+
         match key.code {
             KeyCode::Char('q') | KeyCode::Esc => {
                 self.should_quit = true;
@@ -54,13 +77,23 @@ impl App {
                 AppAction::Quit
             }
 
-            // Scroll within hunk (Shift+Arrow)
+            // Vertical scroll within hunk (Shift+Up/Down)
             KeyCode::Up if key.modifiers.contains(KeyModifiers::SHIFT) => {
                 self.scroll_up();
                 AppAction::Continue
             }
             KeyCode::Down if key.modifiers.contains(KeyModifiers::SHIFT) => {
                 self.scroll_down();
+                AppAction::Continue
+            }
+
+            // Horizontal scroll within hunk (Shift+Left/Right)
+            KeyCode::Left if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                self.scroll_left();
+                AppAction::Continue
+            }
+            KeyCode::Right if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                self.scroll_right();
                 AppAction::Continue
             }
 
@@ -119,12 +152,30 @@ impl App {
                 self.deselect_all_in_current_file();
                 AppAction::Continue
             }
+            KeyCode::Char('A') => {
+                self.select_all_global();
+                AppAction::Continue
+            }
+            KeyCode::Char('N') => {
+                self.deselect_all_global();
+                AppAction::Continue
+            }
 
             // Actions
-            KeyCode::Enter => AppAction::ApplyReversions,
+            KeyCode::Enter => {
+                let selected = self.diff_set.selected_hunks();
+                if selected == 0 {
+                    self.status_message = Some("No hunks selected".to_string());
+                    AppAction::Continue
+                } else {
+                    self.show_confirmation = true;
+                    self.status_message = None;
+                    AppAction::Continue
+                }
+            }
             KeyCode::Char('r') => {
-                self.status_message = Some("Refresh not yet implemented".to_string());
-                AppAction::Continue
+                self.needs_refresh = true;
+                AppAction::Refresh
             }
 
             _ => AppAction::Continue,
@@ -139,11 +190,20 @@ impl App {
         self.vertical_scroll = self.vertical_scroll.saturating_add(1);
     }
 
+    fn scroll_left(&mut self) {
+        self.horizontal_scroll = self.horizontal_scroll.saturating_sub(1);
+    }
+
+    fn scroll_right(&mut self) {
+        self.horizontal_scroll = self.horizontal_scroll.saturating_add(1);
+    }
+
     fn next_hunk(&mut self) {
         if let Some(file) = self.diff_set.files.get(self.current_file) {
             if self.current_hunk + 1 < file.hunks.len() {
                 self.current_hunk += 1;
                 self.vertical_scroll = 0;
+                self.horizontal_scroll = 0;
             } else {
                 // Move to next file
                 self.next_file();
@@ -155,6 +215,7 @@ impl App {
         if self.current_hunk > 0 {
             self.current_hunk -= 1;
             self.vertical_scroll = 0;
+            self.horizontal_scroll = 0;
         } else {
             // Move to previous file's last hunk
             self.previous_file();
@@ -163,6 +224,7 @@ impl App {
             {
                 self.current_hunk = file.hunks.len() - 1;
                 self.vertical_scroll = 0;
+                self.horizontal_scroll = 0;
             }
         }
     }
@@ -172,6 +234,7 @@ impl App {
             self.current_file += 1;
             self.current_hunk = 0;
             self.vertical_scroll = 0;
+            self.horizontal_scroll = 0;
         }
     }
 
@@ -180,6 +243,7 @@ impl App {
             self.current_file -= 1;
             self.current_hunk = 0;
             self.vertical_scroll = 0;
+            self.horizontal_scroll = 0;
         }
     }
 
@@ -200,6 +264,19 @@ impl App {
             selection::deselect_all_in_file(file);
             self.status_message = Some("All hunks in file deselected".to_string());
         }
+    }
+
+    fn select_all_global(&mut self) {
+        selection::select_all_global(&mut self.diff_set);
+        self.status_message = Some(format!(
+            "All {} hunks selected globally",
+            self.diff_set.total_hunks()
+        ));
+    }
+
+    fn deselect_all_global(&mut self) {
+        selection::deselect_all_global(&mut self.diff_set);
+        self.status_message = Some("All hunks deselected globally".to_string());
     }
 
     pub fn get_current_file(&self) -> Option<&crate::diff::types::FileDiff> {

@@ -2,14 +2,15 @@
 
 # tigit
 
-An interactive TUI (Terminal User Interface) for comparing git HEAD with the main branch and selectively reverting changes.
+An interactive TUI (Terminal User Interface) for comparing your working directory with the main branch and selectively reverting changes (both committed and uncommitted).
 
 > [!WARNING]
 > This project was vibecoded with [Claude](https://claude.ai). While functional and tested, use at your own risk.
 
 ## Features
 
-- Side-by-side diff view comparing HEAD and main branch
+- Side-by-side diff view comparing working directory and main branch
+- Shows both committed and uncommitted changes
 - Interactive navigation through files and hunks
 - Select individual hunks to revert
 - Stage reverted changes with git
@@ -42,6 +43,8 @@ tigit --allow-dirty
 ### Navigation
 - `↑/k` - Previous hunk
 - `↓/j` - Next hunk
+- `Shift+↑/↓` - Scroll vertically within hunk
+- `Shift+←/→` - Scroll horizontally within hunk (for long lines)
 - `Tab` - Next file
 - `Shift+Tab` - Previous file
 - `PgUp/PgDn` - Scroll by page
@@ -51,27 +54,30 @@ tigit --allow-dirty
 - `Space` - Toggle current hunk selection
 - `a` - Select all hunks in current file
 - `n` - Deselect all hunks in current file
+- `A` - Select all hunks globally (across all files)
+- `N` - Deselect all hunks globally
 
 ### Actions
-- `Enter` - Apply selected reversions (stage with git)
-- `r` - Refresh diff (not yet implemented)
+- `Enter` - Apply selected reversions (shows confirmation dialog)
+- `r` - Refresh diff from git
 - `?` - Toggle help panel
 - `q/Esc` - Quit
 
 ## How It Works
 
-### Merge-Base Diff (main...HEAD)
+### Merge-Base Diff (main...working directory)
 
-The tool uses **three-dot notation** (`main...HEAD`) showing only changes on your branch since diverging from main:
+The tool compares your **working directory** (including uncommitted changes) against the merge base with main:
 ```bash
-# Equivalent to:
-git diff $(git merge-base main HEAD)..HEAD
+# Shows changes from merge base to working directory
+git diff $(git merge-base main HEAD)
 ```
 
 **Why this matters:**
 - Shows only **your branch's changes**, excluding main's evolution
-- Standard for pull request reviews
-- Example: If main moved from A→B→C and you branched at B creating D→E, only shows D→E
+- Includes both **committed and uncommitted** changes
+- Standard for pull request reviews, but with uncommitted changes visible too
+- Example: If main moved from A→B→C and you branched at B creating D→E, shows D→E plus any uncommitted edits
 
 ### What Gets Staged
 
@@ -83,7 +89,7 @@ When you press Enter:
 
 ## Limitations
 
-- Compares commits (HEAD vs main), not working directory changes
+- Does not show completely untracked files (only tracked files with changes)
 
 ## License
 

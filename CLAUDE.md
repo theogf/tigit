@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-tigit is an interactive TUI (Terminal User Interface) for comparing git HEAD with the main branch and selectively reverting changes. Built with Rust using ratatui for the terminal interface and git2 for git operations.
+tigit is an interactive TUI (Terminal User Interface) for comparing the working directory (including uncommitted changes) with the main branch and selectively reverting changes. Built with Rust using ratatui for the terminal interface and git2 for git operations.
 
 ## Build and Development Commands
 
@@ -45,7 +45,7 @@ cargo clippy
 
 **`src/git/`** - Git operations via git2 library
 - `repository.rs` - Open repo, detect main branch, get commits
-- `diff.rs` - Extract diff using merge-base (three-dot notation: `main...HEAD`)
+- `diff.rs` - Extract diff using merge-base comparing to working directory (includes uncommitted changes)
 - `revert.rs` - Generate reverse patches and apply via `git apply --index`
 
 **`src/diff/`** - Diff data structures and manipulation
@@ -61,10 +61,10 @@ cargo clippy
 
 ### Key Data Flow
 
-1. `git::diff::extract_diff_set()` extracts diff from merge-base to HEAD
+1. `git::diff::extract_diff_set()` extracts diff from merge-base to working directory (includes uncommitted changes)
 2. Diff is parsed into `DiffSet` containing `FileDiff`s with `Hunk`s
-3. `tui::app::App` manages state (current file/hunk, selections)
-4. User selects hunks, presses Enter
+3. `tui::app::App` manages state (current file/hunk, selections, scroll positions)
+4. User selects hunks, confirms with Enter (shows confirmation dialog)
 5. `git::revert::create_reverse_patch()` generates inverted patch
 6. Patch applied via `git apply --index` to working directory and staging area
 

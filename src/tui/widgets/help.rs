@@ -27,7 +27,8 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
         )]),
         Line::from("  ↑/k          - Previous hunk"),
         Line::from("  ↓/j          - Next hunk"),
-        Line::from("  Shift+↑/↓    - Scroll within hunk"),
+        Line::from("  Shift+↑/↓    - Scroll vertically within hunk"),
+        Line::from("  Shift+←/→    - Scroll horizontally within hunk"),
         Line::from("  Tab          - Next file"),
         Line::from("  Shift+Tab    - Previous file"),
         Line::from("  PgUp/PgDn    - Scroll by page"),
@@ -40,6 +41,8 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
         Line::from("  Space        - Toggle current hunk selection"),
         Line::from("  a            - Select all hunks in current file"),
         Line::from("  n            - Deselect all hunks in current file"),
+        Line::from("  A            - Select all hunks globally"),
+        Line::from("  N            - Deselect all hunks globally"),
         Line::from(""),
         Line::from(vec![Span::styled(
             "Actions:",
@@ -80,6 +83,42 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
         .alignment(Alignment::Left);
 
     frame.render_widget(help_paragraph, popup_area);
+}
+
+pub fn render_confirmation(frame: &mut Frame, area: Rect, selected_count: usize) {
+    let popup_area = centered_rect(50, 20, area);
+
+    frame.render_widget(Clear, popup_area);
+
+    let text = vec![
+        Line::from(""),
+        Line::from(vec![Span::styled(
+            format!("Apply {} selected reversion(s)?", selected_count),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(""),
+        Line::from("This will undo the selected changes and stage them."),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Enter/y", Style::default().fg(Color::Green)),
+            Span::raw(" - Confirm    "),
+            Span::styled("Esc/n", Style::default().fg(Color::Red)),
+            Span::raw(" - Cancel"),
+        ]),
+    ];
+
+    let paragraph = Paragraph::new(text)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Confirm ")
+                .style(Style::default().bg(Color::Black)),
+        )
+        .alignment(Alignment::Center);
+
+    frame.render_widget(paragraph, popup_area);
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

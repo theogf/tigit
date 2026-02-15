@@ -29,11 +29,16 @@ pub fn render(frame: &mut Frame, app: &App) {
     if app.show_help {
         help::render_help(frame, size);
     }
+
+    // Render confirmation dialog if needed
+    if app.show_confirmation {
+        help::render_confirmation(frame, size, app.diff_set.selected_hunks());
+    }
 }
 
 fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     let title = format!(
-        "tigit: HEAD vs {} ({} files, {} hunks, {} selected)",
+        "tigit: Working Directory vs {} ({} files, {} hunks, {} selected)",
         app.diff_set.main_branch_name,
         app.diff_set.files.len(),
         app.diff_set.total_hunks(),
@@ -92,6 +97,7 @@ fn render_content(frame: &mut Frame, area: Rect, app: &App) {
                 hunk.selected,
                 diff_view::DiffSide::Left,
                 app.vertical_scroll,
+                app.horizontal_scroll,
             );
 
             // Right side: HEAD
@@ -102,6 +108,7 @@ fn render_content(frame: &mut Frame, area: Rect, app: &App) {
                 hunk.selected,
                 diff_view::DiffSide::Right,
                 app.vertical_scroll,
+                app.horizontal_scroll,
             );
         } else {
             let no_hunks = Paragraph::new("No hunks in this file")

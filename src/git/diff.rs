@@ -3,7 +3,7 @@ use crate::error::{GitDiffError, Result};
 use git2::{Commit, Delta, Diff, DiffOptions, Repository};
 use std::cell::RefCell;
 
-/// Get diff between main branch and HEAD
+/// Get diff between main branch and HEAD (committed changes only)
 pub fn get_diff<'repo>(
     repo: &'repo Repository,
     main_commit: &Commit,
@@ -16,6 +16,23 @@ pub fn get_diff<'repo>(
     opts.context_lines(3);
 
     let diff = repo.diff_tree_to_tree(Some(&main_tree), Some(&head_tree), Some(&mut opts))?;
+
+    Ok(diff)
+}
+
+/// Get diff between a commit and the working directory (includes uncommitted changes)
+pub fn get_diff_to_workdir<'repo>(
+    repo: &'repo Repository,
+    base_commit: &Commit,
+) -> Result<Diff<'repo>> {
+    let base_tree = base_commit.tree()?;
+
+    let mut opts = DiffOptions::new();
+    opts.context_lines(3);
+    opts.include_untracked(false); // Don't include completely untracked files
+    opts.recurse_untracked_dirs(false);
+
+    let diff = repo.diff_tree_to_workdir_with_index(Some(&base_tree), Some(&mut opts))?;
 
     Ok(diff)
 }
@@ -105,27 +122,26 @@ pub fn parse_diff(
     Ok(diff_set)
 }
 
-/// Extract and parse diff in one call using merge base (main...HEAD)
-/// This shows only changes on the current branch since diverging from main
+/// Extract and parse diff in one call using merge base (main...HEAD + working directory)
+/// This shows changes on the current branch since diverging from main, including uncommitted changes
 pub fn extract_diff_set(repo: &Repository, main_branch: &str) -> Result<DiffSet> {
     use super::repository::get_commits;
 
-    let (head_commit, main_commit) = get_commits(repo, main_branch)?;
+    let (_head_commit, main_commit) = get_commits(repo, main_branch)?;
 
     // Find merge base (common ancestor) for three-dot diff
-    let merge_base_oid = repo.merge_base(head_commit.id(), main_commit.id())?;
+    let merge_base_oid = repo.merge_base(repo.head()?.target().unwrap(), main_commit.id())?;
     let merge_base_commit = repo.find_commit(merge_base_oid)?;
 
-    let head_id = head_commit.id().to_string();
     let base_id = merge_base_commit.id().to_string();
 
-    // Diff from merge base to HEAD (shows only changes on this branch)
-    let diff = get_diff(repo, &merge_base_commit, &head_commit)?;
+    // Diff from merge base to working directory (shows branch changes + uncommitted changes)
+    let diff = get_diff_to_workdir(repo, &merge_base_commit)?;
     let diff_set = parse_diff(
         &diff,
-        head_id,
+        "working directory".to_string(),
         base_id.clone(),
-        format!("{}...HEAD (merge base: {})", main_branch, &base_id[..7]),
+        format!("{}...workdir (merge base: {})", main_branch, &base_id[..7]),
     )?;
 
     if diff_set.is_empty() {
