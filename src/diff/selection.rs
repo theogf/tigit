@@ -65,9 +65,9 @@ pub fn split_hunk(diff_set: &mut DiffSet, file_idx: usize, hunk_idx: usize) -> b
             }
             LineOrigin::Context => {
                 if seen_change {
-                    let more_changes = lines[i + 1..].iter().any(|l| {
-                        matches!(l.origin, LineOrigin::Addition | LineOrigin::Deletion)
-                    });
+                    let more_changes = lines[i + 1..]
+                        .iter()
+                        .any(|l| matches!(l.origin, LineOrigin::Addition | LineOrigin::Deletion));
                     if more_changes {
                         split_point = Some(i);
                         break;
