@@ -256,7 +256,7 @@ impl App {
         if selection::split_hunk(&mut self.diff_set, self.current_file, self.current_hunk) {
             self.status_message = Some("Hunk split into two".to_string());
         } else {
-            self.status_message = Some("Cannot split: no context gap between changes".to_string());
+            self.status_message = Some("Cannot split this hunk".to_string());
         }
     }
 
