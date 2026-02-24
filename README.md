@@ -13,6 +13,7 @@ An interactive TUI (Terminal User Interface) for comparing your working director
 - Shows both committed and uncommitted changes
 - Interactive navigation through files and hunks
 - Select individual hunks to revert
+- Split hunks into smaller pieces for fine-grained control
 - Stage reverted changes with git
 - Auto-detects main branch (main/master)
 - Built with Rust and ratatui
@@ -52,6 +53,7 @@ tigit --allow-dirty
 
 ### Selection
 - `Space` - Toggle current hunk selection
+- `s` - Split current hunk into two smaller hunks
 - `a` - Select all hunks in current file
 - `n` - Deselect all hunks in current file
 - `A` - Select all hunks globally (across all files)

@@ -128,10 +128,8 @@ pub fn render_diff_hunk(
                     let content = line.content.trim_end_matches('\n');
 
                     // Apply horizontal scrolling
-                    let scrolled_content: String = content
-                        .chars()
-                        .skip(horizontal_scroll as usize)
-                        .collect();
+                    let scrolled_content: String =
+                        content.chars().skip(horizontal_scroll as usize).collect();
 
                     lines.push(Line::from(vec![
                         Span::styled(lineno, Style::default().fg(Color::DarkGray)),
@@ -159,10 +157,8 @@ pub fn render_diff_hunk(
                     let content = line.content.trim_end_matches('\n');
 
                     // Apply horizontal scrolling
-                    let scrolled_content: String = content
-                        .chars()
-                        .skip(horizontal_scroll as usize)
-                        .collect();
+                    let scrolled_content: String =
+                        content.chars().skip(horizontal_scroll as usize).collect();
 
                     lines.push(Line::from(vec![
                         Span::styled(lineno, Style::default().fg(Color::DarkGray)),

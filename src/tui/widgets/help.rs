@@ -39,6 +39,7 @@ pub fn render_help(frame: &mut Frame, area: Rect) {
             Style::default().add_modifier(Modifier::BOLD),
         )]),
         Line::from("  Space        - Toggle current hunk selection"),
+        Line::from("  s            - Split current hunk"),
         Line::from("  a            - Select all hunks in current file"),
         Line::from("  n            - Deselect all hunks in current file"),
         Line::from("  A            - Select all hunks globally"),
