@@ -161,6 +161,11 @@ impl App {
                 AppAction::Continue
             }
 
+            KeyCode::Char('s') => {
+                self.split_current_hunk();
+                AppAction::Continue
+            }
+
             // Actions
             KeyCode::Enter => {
                 let selected = self.diff_set.selected_hunks();
@@ -244,6 +249,14 @@ impl App {
             self.current_hunk = 0;
             self.vertical_scroll = 0;
             self.horizontal_scroll = 0;
+        }
+    }
+
+    fn split_current_hunk(&mut self) {
+        if selection::split_hunk(&mut self.diff_set, self.current_file, self.current_hunk) {
+            self.status_message = Some("Hunk split into two".to_string());
+        } else {
+            self.status_message = Some("Cannot split: no context gap between changes".to_string());
         }
     }
 

@@ -3,23 +3,6 @@ use crate::error::{GitDiffError, Result};
 use git2::{Commit, Delta, Diff, DiffOptions, Repository};
 use std::cell::RefCell;
 
-/// Get diff between main branch and HEAD (committed changes only)
-pub fn get_diff<'repo>(
-    repo: &'repo Repository,
-    main_commit: &Commit,
-    head_commit: &Commit,
-) -> Result<Diff<'repo>> {
-    let main_tree = main_commit.tree()?;
-    let head_tree = head_commit.tree()?;
-
-    let mut opts = DiffOptions::new();
-    opts.context_lines(3);
-
-    let diff = repo.diff_tree_to_tree(Some(&main_tree), Some(&head_tree), Some(&mut opts))?;
-
-    Ok(diff)
-}
-
 /// Get diff between a commit and the working directory (includes uncommitted changes)
 pub fn get_diff_to_workdir<'repo>(
     repo: &'repo Repository,
